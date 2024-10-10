@@ -410,36 +410,39 @@ fn main() {
 
     /* -------------------------   Option enum  ----------------------------- */
     {
-        struct DataBase{
+        struct DataBase {
             name: String,
-            id: u32
+            id: u32,
         }
-    
-        impl DataBase{
-            fn user_exists(&self, name: &str) -> bool{
-                if self.name == name{
-                    return true
+
+        impl DataBase {
+            fn user_exists(&self, name: &str) -> bool {
+                if self.name == name {
+                    return true;
                 }
                 false
             }
-    
-            fn get_id(&self, name: &str) -> u32{
-                if self.user_exists(name){
-                    return self.id
+
+            fn get_id(&self, name: &str) -> u32 {
+                if self.user_exists(name) {
+                    return self.id;
                 }
                 0
             }
         }
 
-        fn get_user_id(name: &str) -> Option<u32> {  
-            let database = DataBase{name:"Snaku".to_string(), id:23};  
+        fn get_user_id(name: &str) -> Option<u32> {
+            let database = DataBase {
+                name: "Snaku".to_string(),
+                id: 23,
+            };
             if database.user_exists(name) {
-               return Some(database.get_id(name))
-            } 
+                return Some(database.get_id(name));
+            }
             None
         }
 
-        match get_user_id("Snaku"){
+        match get_user_id("Snaku") {
             Some(id) => println!("Snaku's id in database is {id}"),
             None => println!("user not exist"),
         }
@@ -447,100 +450,110 @@ fn main() {
 
     /* -------------------------   Result enum  ----------------------------- */
     {
-        struct Error{
-            msg: String
-        }
-    
-        struct User{
-            id: u32
+        struct Error {
+            msg: String,
         }
 
-        fn is_logged_in_as(id:u32)-> bool{
-            if id != 0{
-                return true
+        struct User {
+            id: u32,
+        }
+
+        fn is_logged_in_as(id: u32) -> bool {
+            if id != 0 {
+                return true;
             }
             false
         }
 
-        fn get_user_object(id:u32) -> User{
-            let mut user = User{id:0};
+        fn get_user_object(id: u32) -> User {
+            let mut user = User { id: 0 };
             user.id = id;
             user
         }
 
         fn get_user(id: u32) -> Result<User, Error> {
             if is_logged_in_as(id) {
-                return Ok(get_user_object(id))
-            } 
-            Err(Error { msg: "not logged in".to_string() })
+                return Ok(get_user_object(id));
+            }
+            Err(Error {
+                msg: "not logged in".to_string(),
+            })
         }
 
-        match get_user(0){
+        match get_user(0) {
             Ok(u) => println!("get user id is {}", u.id),
-            Err(e) => println!("get user error: {}",e.msg),
+            Err(e) => println!("get user error: {}", e.msg),
         }
 
-        match get_user(23){
+        match get_user(23) {
             Ok(u) => println!("get user id is {}", u.id),
-            Err(e) => println!("get user error: {}",e.msg),
+            Err(e) => println!("get user error: {}", e.msg),
         }
-        
     }
 
     /* ----------------------   '?'  Operator    ---------------------------- */
     {
-        struct User{
-            id: i32,
-            name: String,
+        struct User {
+            _id: i32,
+            _name: String,
             job: Job,
         }
 
-        struct Job{
+        struct Job {
             _name: String,
             salary: u32,
         }
 
-        impl User{
-            fn get_job(&self) -> Option<&Job>{
+        impl User {
+            fn get_job(&self) -> Option<&Job> {
                 Some(&self.job)
             }
         }
-        
+
         #[derive(Debug)]
-        enum Connection{
+        enum Connection {
             _Http,
             Ssh,
             _Telnet,
-            _Restful
+            _Restful,
         }
 
-        struct Database{
+        struct Database {
             user: User,
             conn: Connection,
         }
 
-        struct Error{
-            msg: String
+        struct Error {
+            msg: String,
         }
 
-        impl Database{
-            fn get_user(&self, id:i32) -> Option<&User>{
-                if id == 23{
+        impl Database {
+            fn get_user(&self, id: i32) -> Option<&User> {
+                if id == 23 {
                     Some(&self.user)
-                }
-                else{
+                } else {
                     None
                 }
             }
 
-            fn get_connect(self) -> Result<Connection, Error>{
+            fn get_connect(self) -> Result<Connection, Error> {
                 Ok(self.conn)
             }
         }
 
-        let work = Job{_name: "FW".to_string(), salary: 100000};
-        let user1 = User{id:23, name:"Snaku".to_string(), job:work};
-        let db = Database{user: user1, conn:Connection::Ssh};
+        let work = Job {
+            _name: "FW".to_string(),
+            salary: 100000,
+        };
+        let user1 = User {
+            _id: 23,
+            _name: "Snaku".to_string(),
+            job: work,
+        };
+        let db = Database {
+            user: user1,
+            conn: Connection::Ssh,
+        };
 
         fn get_salary(db: &Database, id: i32) -> Option<u32> {
             Some(db.get_user(id)?.get_job()?.salary)
@@ -551,16 +564,128 @@ fn main() {
             Ok(conn)
         }
 
-        match get_salary(&db, 23){
+        match get_salary(&db, 23) {
             Some(s) => println!("user 23's salary is {}", s),
             None => println!("find user 23 error"),
         }
 
-        match connect(db){
+        match connect(db) {
             Ok(conn) => println!("db conn is {:?}", conn),
             Err(e) => println!("{}", e.msg),
         }
     }
-    
 
+    /* ---------------------------------------------------------------------- */
+    /* ------------------------     COMBINATORS     ------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* -----------------------------   .map  -------------------------------- */
+    {
+        let some_string = Some("LGR".to_owned());
+        let some_len = some_string.map(|s| s.len());
+        println!("some_len is {:?}", some_len);
+
+        #[derive(Debug)]
+        struct Error {
+            _msg: String,
+        }
+        #[derive(Debug)]
+        struct User {
+            _name: String,
+        }
+        let string_result: Result<String, Error> = Ok("Bogdan".to_owned());
+        let user_result: Result<User, Error> = string_result.map(|_name| User { _name });
+        println!("user_result is {:?}", user_result);
+    }
+
+    /* --------------------------  .and_then    ----------------------------- */
+    {
+        let vec = Some(vec![1, 2, 3]);
+        let first_element = vec.and_then(|vec| vec.into_iter().next());
+        println!("first_element is {:?}", first_element);
+
+        // let vec = Some(vec![1, 2, 3]);
+        // let mut iterates = vec.unwrap().into_iter();
+        // _ = iterates.next();
+        // let second_element = iterates.next();
+        // println!("second_element is {:?}", second_element);
+
+        let string_result: Result<&'static str, _> = Ok("5");
+        let number_result = string_result.and_then(|s| s.parse::<u32>());
+        println!("number_result is {:?}", number_result);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* -------------------    MULTIPLE ERROR TYPES    ----------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* ------------------   Define custom error type   ---------------------- */
+    {
+        use std::fmt;
+
+        type Result<T> = std::result::Result<T, CustomError>;
+        #[derive(Debug, Clone)]
+        struct CustomError;
+        impl fmt::Display for CustomError {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "custom error message")
+            }
+        }
+    }
+
+    /* --------------------     Boxing errors    ---------------------------- */
+    {
+        use std::error::Error;
+        type Result<T> = std::result::Result<T, Box<dyn Error>>;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* -------------------    ITERATING OVER ERRORS    ----------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* -----------    Ignore failed items with filter_map()   --------------- */
+    {
+        let strings = vec!["LGR", "22", "7"];
+        let numbers: Vec<_> = strings
+            .into_iter()
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect();
+        println!("filter_map numbers are {:?}", numbers);
+    }
+
+    /* ----------   Fail the entire operation with collect()   -------------- */
+    {
+        let strings = vec!["LGR", "22", "7"];
+
+        let numbers: Result<Vec<_>, _> = strings
+            .into_iter()
+            .map(|s| s.parse::<i32>())
+            .collect();
+
+        println!("map without filter, Error msg: {:?}", numbers);
+    }
+
+
+    /* ------   Collect all valid values & failures with partition()  ------- */
+    {
+        let strings = vec!["LGR", "22", "7"];
+
+        let (numbers, errors): (Vec<_>, Vec<_>) = strings
+            .into_iter()
+            .map(|s| s.parse::<i32>())
+            .partition(Result::is_ok);
+        println!("numbers: {:?}, errors: {:?}", numbers, errors);
+        
+        let numbers: Vec<_> = numbers
+            .into_iter()
+            .map(Result::unwrap)
+            .collect();
+        println!("numbers: {:?}", numbers);
+        
+        let errors: Vec<_> = errors
+            .into_iter()
+            .map(Result::unwrap_err)
+            .collect();
+        println!("errors: {:?}", errors);
+    }
 }
