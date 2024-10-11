@@ -1,7 +1,4 @@
 /* Rust cheatsheet from https://letsgetrusty.com/ */
-
-use core::error;
-
 fn main() {
     println!("Hello, world!");
 
@@ -381,17 +378,17 @@ fn main() {
 
     /* ----------------  Implementing the Iterator trait  ------------------- */
     {
-        struct Counter {
+        struct _Counter {
             count: u32,
         }
 
-        impl Counter {
-            fn new() -> Counter {
-                Counter { count: 0 }
+        impl _Counter {
+            fn _new() -> _Counter {
+                _Counter { count: 0 }
             }
         }
 
-        impl Iterator for Counter {
+        impl Iterator for _Counter {
             type Item = u32;
             fn next(&mut self) -> Option<Self::Item> {
                 if self.count < 5 {
@@ -623,10 +620,11 @@ fn main() {
     {
         use std::fmt;
 
-        type Result<T> = std::result::Result<T, CustomError>;
+        type _Result<T> = std::result::Result<T, _CustomError>;
+        
         #[derive(Debug, Clone)]
-        struct CustomError;
-        impl fmt::Display for CustomError {
+        struct _CustomError;
+        impl fmt::Display for _CustomError {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "custom error message")
             }
@@ -636,7 +634,7 @@ fn main() {
     /* --------------------     Boxing errors    ---------------------------- */
     {
         use std::error::Error;
-        type Result<T> = std::result::Result<T, Box<dyn Error>>;
+        type _Result<T> = std::result::Result<T, Box<dyn Error>>;
     }
 
     /* ---------------------------------------------------------------------- */
@@ -688,4 +686,360 @@ fn main() {
             .collect();
         println!("errors: {:?}", errors);
     }
+
+
+    /* ---------------------------------------------------------------------- */
+    /* ---------------    GENERICS, TRAITS & LIFETIMES    ------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* ----------------------    Using Generics   --------------------------- */
+    {
+        struct _Point<T, U> {
+            x: T,
+            y: U,
+        }
+
+        impl<T, U> _Point<T, U> {
+            fn _mixup<V, W>(self, other: _Point<V, W>) -> _Point<T, W> {
+                _Point {
+                    x: self.x,
+                    y: other.y,
+                }
+            }
+        }
+    }
+
+
+
+    /* ---------------------    Defining Traits    -------------------------- */
+    trait _Animal {
+        fn new(name: &'static str) -> Self;
+        fn noise(&self) -> &'static str { "" }
+    }
+    
+    struct _Dog { name: &'static str }
+    
+    impl _Dog {
+        fn _fetch() {   }
+    }
+    
+    impl _Animal for _Dog {
+        fn new(name: &'static str) -> _Dog {
+            _Dog { name: name }
+        }
+        fn noise(&self) -> &'static str {
+            "woof!"
+        }
+    }
+
+    /* ----------    Default implementations with Derive     ---------------- */
+    {
+        // A tuple struct that can be printed
+        #[derive(Debug)]
+        struct _Inches(i32);
+    }
+
+    /* ---------------------       Trait Bounds       ----------------------- */
+    {
+        fn _largest<T: PartialOrd + Copy>(list: &[T]) -> T {
+            let mut largest = list[0];
+            for &item in list {
+                if item > largest {
+                    largest = item;
+                }
+            }
+            largest
+        }
+    }
+
+    /* ----------------------       impl trait       ------------------------ */
+    {
+        fn _make_adder_function(y: i32) -> impl Fn(i32)->i32 {
+            let closure = move |x: i32| { x + y };
+            closure
+        }
+    }
+    
+    /* ----------------------     Trait Objects     ------------------------- */
+    {
+        pub trait _Draw {
+            fn draw(&self);
+        }
+
+        pub struct _Screen {
+            pub components: Vec<Box<dyn _Draw>>,
+        }
+    }
+
+
+
+    /* -------------------     Operator Overloading     --------------------- */
+    {
+        use std::ops::Add;
+        
+        #[derive(Debug, Copy, Clone, PartialEq)]
+        struct Point {
+            x: i32,
+            y: i32,
+        } 
+        
+        impl Add for Point {
+            type Output = Point;
+            fn add(self, other: Point) -> Point {
+                Point {
+                    x: self.x + other.x,
+                    y: self.y + other.y,
+                }
+            }
+        }
+    }
+
+
+    /* -----------------------      Supertraits     ------------------------- */
+    {
+        use std::fmt;
+
+        trait _Log: fmt::Display {
+            fn log(&self) {
+                let output = self.to_string();
+                println!("Logging: {}", output);
+            }
+        }
+    }
+
+    /* ----------      Lifetimes in function signatures     ----------------- */
+    {
+        fn _longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+            if x.len() > y.len() {
+                x
+            } else {
+                y
+            }
+        }
+    }
+    
+    /* -----------      Lifetimes in struct definitions      ---------------- */
+    {
+        struct _User<'a> {
+            full_name: &'a str,
+        }
+    }
+    
+    /* --------------------      Static lifetimes     ----------------------- */
+    {
+        let _s: &'static str = "Let’s Get Rusty!";
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+    /* ---------------    FUNCTION POINTERS & CLOSURES    ------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* ---------------    Associated Functions and Methods   ---------------- */
+    {
+        struct _Point { x: i32, y: i32, }
+
+        impl _Point {
+            // Associated function
+            fn _new(x: i32, y: i32) -> _Point {
+                _Point { x: x, y: y }
+            } 
+            
+            // Method (have "&self" parameter )
+            fn _get_x(&self) -> i32 { self.x }
+        }
+    }
+
+
+    /* ---------------------    Function Pointers     ----------------------- */
+    {
+        fn _do_twice(f: fn(i32)->i32, arg: i32) -> i32 {
+            f(arg) + f(arg)
+        }
+    }
+        
+    /* --------------------     Creating Closures     ----------------------- */
+    {
+        let _add_one = |num: u32| -> u32 {
+            num + 1
+        };
+    }
+    
+    /* -------------------     Returning Closures     ----------------------- */
+    {
+        fn _add_one() -> impl Fn(i32)->i32 {
+            |x| x + 1
+        }
+        
+        fn _add_or_subtract(x: i32) -> Box<dyn Fn(i32)->i32> {
+            if x > 10 {
+                Box::new(move |y| y + x)
+            } else {
+                Box::new(move |y| y - x)
+            }
+        }
+    }
+
+    /* --------------------     Closure Traits     -------------------------- */
+    //
+    // • FnOnce - consumes the variables it captures from its enclosing scope.
+    //
+    // • FnMut - mutably borrows values from its enclosing scope.
+    //
+    // • Fn - immutably borrows values from its enclosing scope.
+    //
+        
+    /* -----------------     Store Closure in Struct     -------------------- */
+    {
+        struct _Cacher<T>
+            where
+            T: Fn(u32) -> u32,
+        {
+            calculation: T,
+            value: Option<u32>,
+        }
+    }
+
+    /* ------    Function that Accepts Closure or Function Pointer    ------- */
+    {
+        fn _do_twice<T>(f: T, x: i32) -> i32
+            where T: Fn(i32)->i32
+        {
+            f(x) + f(x)
+        }
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+    /* -----------------------      POINTERS      --------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    /* -----------------------     References     --------------------------- */
+    {
+        let mut num = 5;
+
+        let _r1 = &num; // immutable reference
+        
+        let _r2 = &mut num; // mutable reference
+    }
+        
+    /* ---------------------      Raw Pointers     -------------------------- */
+    {
+        let mut num = 5;
+        
+        let _r1 = &num as *const i32; // immutable raw pointer
+        
+        let _r2 = &mut num as *mut i32; // mutable raw pointer
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* ----------------------      Smart Points      ------------------------ */
+    /* ---------------------------------------------------------------------- */
+
+    /* -----------   Box<T> - for allocating values on the heap    ---------- */
+    {
+        let _b = Box::new(5);   
+    }
+    
+    /* --------    Rc<T> - multiple ownership with reference counting    ---- */
+    {
+        use std::rc::Rc;
+
+        let a = Rc::new(5);
+        let _b = Rc::clone(&a);
+    }
+        
+    /* -----------      Ref<T>, RefMut<T>, and RefCell<T>      -------------- */
+    {
+        // enforce borrowing rules at runtime instead of compile time.
+        use std::cell::RefCell;
+
+        let r1 = RefCell::new(5);
+        
+        let _r2 = r1.borrow();          // Ref - immutable borrow
+        
+        let _r3 = r1.borrow_mut();   // RefMut - mutable borrow
+        
+        let _r4 = r1.borrow_mut();   // RefMut - second mutable borrow
+    }
+
+    /* -------------     Multiple owners of mutable data    ----------------- */
+    {
+        use std::rc::Rc;
+        use std::cell::RefCell;
+
+        let _x = Rc::new(RefCell::new(5));
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+    /* ----------------      Packages, Crates, Modules     ------------------ */
+    /* ---------------------------------------------------------------------- */
+
+    /* ----------------------      Definitions      ------------------------- */
+    //
+    // • Packages - A Cargo feature that lets you build, test, and share crates.
+    // 
+    // • Crates - A tree of modules that produces a library or executable.
+    //
+    // • Modules and use - Let you control the organization, scope, and privacy of paths.
+    //
+    // • Paths - A way of naming an item, such as a struct, function, or module.
+    //
+
+    /* ---------------------    Creating Crates     ------------------------- */
+    //
+    // $ cargo new my-project           // to create a new package with a binary crate
+    //
+    // $ cargo new my-project --lib     // to create a new package with a library crate
+
+
+    /* ----------------      Defining & using Modules     ------------------- */
+    // fn some_function() {}
+    //
+    // mod outer_module { // private module
+    //     pub mod inner_module { // public module
+    //         pub fn inner_public_function() {
+    //             super::super::some_function();
+    //         } 
+    //         fn inner_private_function() {}
+    //     }
+    // }
+    //
+    // fn main() {
+    //     // absolute path
+    //     crate::outer_module::inner_module::inner_public_function();
+    //
+    //     // relative path path
+    //     outer_module::inner_module::inner_public_function();
+    //
+    //     // bringing path into scope
+    //     use outer_module::inner_module;
+    //     inner_module::inner_public_function();
+    // }
+    
+    /* --------------     Re-exporting with 'pub use'     ------------------- */
+    //
+    // pub use crate::outer_module::inner_module;
+    //
+
+    /* ----------------      Renaming with as Keyword     ------------------- */
+    {
+        use std::fmt::Result;
+        use std::io::Result as IoResult;
+    }
+
+
+    /* -----------    Defining modules in separate files     ---------------- */
+    // -- src/lib.rs --
+    // mod my_module;
+    // pub fn some_function() {
+    //      my_module::my_function();
+    // }
+    // --
+    // 
+    // -- src/my_module.rs --
+    // pub fn my_function() {}
+    // --
+
 }
