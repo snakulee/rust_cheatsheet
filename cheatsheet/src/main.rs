@@ -956,11 +956,13 @@ fn main() {
 
         let r1 = RefCell::new(5);
         
-        let _r2 = r1.borrow();          // Ref - immutable borrow
+        let _r2 = r1.borrow();  // Ref - immutable borrow
+
+        let _r3 = r1.borrow();  // Ref - immutable borrow
         
-        let _r3 = r1.borrow_mut();   // RefMut - mutable borrow
+        //let _r3 = r1.borrow_mut();   // RefMut - mutable borrow, !! Panic at this line !!
         
-        let _r4 = r1.borrow_mut();   // RefMut - second mutable borrow
+        //let _r4 = r1.borrow_mut();   // RefMut - second mutable borrow
     }
 
     /* -------------     Multiple owners of mutable data    ----------------- */
